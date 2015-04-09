@@ -1,0 +1,27 @@
+{
+  "name": "generator-lean-website",
+  "version": "0.0.1",
+  "description": "Website scaffolding generator.",
+  "main": "app/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/Nipher/generator-lean-website.git"
+  },
+  "keywords": [
+    "generator-lean-website"
+  ],
+  "author": "Nipher",
+  "license": "GPL",
+  "bugs": {
+    "url": "https://github.com/Nipher/generator-lean-website/issues"
+  },
+  "homepage": "https://github.com/Nipher/generator-lean-website",
+  "dependencies": {
+    "chalk": "^1.0.0",
+    "yeoman-generator": "^0.19.1",
+    "yosay": "^1.0.3"
+  }
+}
