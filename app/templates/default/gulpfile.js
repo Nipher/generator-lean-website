@@ -3,12 +3,17 @@
 var gulp = require('gulp');
 var p = require('gulp-load-plugins')(); // loading gulp plugins lazily
 var bowerFiles = require('main-bower-files');
+<% if (config.css === 'Stylus') { %>var nib = require('nib');<% } %>
+var express = require('express');
+var app = express();
+var st = require('st');
+var connectLivereload = require('connect-livereload');
 
-node = null
+
 <% if (config.script === 'CoffeeScript') { %>
 gulp.task('coffee', function () {
-  gulp()
-  .src(['scripts/**/*.coffee'])
+  gulp
+  .src(['src/scripts/**/*.coffee'])
   .pipe(p.changed('./.tmp', { extension:'.js' }))
   .pipe(p.coffee({bare: true }).on('error', function (err) {
     p.util.log(err);
@@ -16,9 +21,9 @@ gulp.task('coffee', function () {
   }))
   .pipe(gulp.dest('./.tmp'));
 });<% } %>
-<% if (config.css === 'Jade') { %>gulp.task('jade', function () {
-  gulp()
-  .src(['index.jade'])
+<% if (config.markup === 'Jade') { %>gulp.task('jade', function () {
+  gulp
+  .src(['src/index.jade'])
   .pipe(p.changed('./.tmp', { extension:'.css' }))
   .pipe(p.jade({ pretty: true }).on('error', function (err) {
     p.util.log(err);
@@ -27,15 +32,23 @@ gulp.task('coffee', function () {
   .pipe(gulp.dest('./.tmp'));
 });<% } %>
 
+gulp.task('livereload-start', function () {
+  var mount = st({ path: '<% if (config.markup === "HTML") { %>./src<% } else if (config.markup === "Jade") { %>./.tmp<% } %>', index: 'index.html', cache: false });
+  app.use(connectLivereload());
+  app.use(mount() );
+  app.listen(9000);
+  p.livereload.listen();
+});
+
 gulp.task('watch', ['livereload-start'], function () {
   <% if (config.script === 'CoffeeScript') { %>
-  gulp.watch(['scripts/**/*.coffee'], ['coffee']);<% }
-  if (config.css === 'Stylus') { %>gulp.watch(['styles/**/*.styl'], ['stylus']);<% } 
-  if (config.markup === 'Jade') { %>gulp.watch(['index.jade'], ['jade']);<% } %>
+  gulp.watch(['src/scripts/**/*.coffee'], ['coffee']);<% }
+  if (config.css === 'Stylus') { %>gulp.watch(['src/styles/**/*.styl'], ['stylus']);<% } 
+  if (config.markup === 'Jade') { %>gulp.watch(['src/index.jade'], ['jade']);<% } %>
   var toWatch = ['./.tmp/**/*']
 
-  <% if (config.css === 'CSS') { %>toWatch.push('styles/**/*.css');<% } else if (config.css === 'Stylus') { %>toWatch.push('.tmp/styles/**/*.css');<% } %>
-  <% if (config.markup === 'HTML') { %>toWatch.push('index.html');<% } else if (config.markup === 'Jade') { %>toWatch.push('.tmp/index.jade');<% } %>
+  <% if (config.css === 'CSS') { %>toWatch.push('src/styles/**/*.css');<% } else if (config.css === 'Stylus') { %>toWatch.push('.tmp/styles/**/*.css');<% } %>
+  <% if (config.markup === 'HTML') { %>toWatch.push('src/index.html');<% } else if (config.markup === 'Jade') { %>toWatch.push('.tmp/index.jade');<% } %>
   
   gulp.watch(toWatch)
   .on('change', function (file) {
@@ -44,8 +57,8 @@ gulp.task('watch', ['livereload-start'], function () {
 });
 <% if (config.css === 'Stylus') { %>
 gulp.task('stylus', function () {
-  gulp()
-  .src(['styles/**/*.styl'])
+  gulp
+  .src(['src/styles/**/*.styl'])
   .pipe(p.changed('./.tmp'))
   .pipe(p.stylus({ use:[nib()] }).on('error', function (err) { 
     p.util.log("Stylus Error:\n#{err.message}");
@@ -54,14 +67,16 @@ gulp.task('stylus', function () {
   .pipe(gulp.dest('./.tmp/styles'));
 });<% } %>
 
-var indexFile = <% if (config.markup === 'Jade') { %>'index.jade'<% } else if (config.markup == 'HTML') { %>'index.html'<% } %>
+var indexFile = <% if (config.markup === 'Jade') { %>'./src/index.jade'<% } else if (config.markup == 'HTML') { %>'./src/index.html'<% } %>
 
 gulp.task('inject-bower', function () {
   gulp.src(bowerFiles())
   .pipe(p.inject(indexFile, {
-    starttag:'//---inject:bower:{{ext}}---',
-    endtag:'//---inject---',
+    <% if (config.markup === "HTML") { %>starttag: '<!--inject:{{ext}}-->',
+    endtag: '<!--inject-->',<% } else if (config.markup === "Jade") { %>starttag'//---inject:{{ext}}---',
+    endtag: '//---inject---',<% } %>
     transform: function (filepath, file, index, length) {
+      if (!filepath) return;
       filepath = filepath.replace(/^.+?\//, '');
       var ext = filepath.split('.').pop();
       switch (ext) {
@@ -76,7 +91,7 @@ gulp.task('inject-bower', function () {
       }
     }
   }))
-  .pipe(gulp.dest('./'));
+  .pipe(gulp.dest('./src'));
 });
 
 var deps = ['inject-bower'];
@@ -84,15 +99,17 @@ var deps = ['inject-bower'];
 <% if (config.script === 'CoffeeScript') { %>deps.push('coffee');<% } %>
 gulp.task('inject-scripts', deps, function () {
   var src = [];
-  <% if (config.script === 'JavaScript') { %>src.push('./scripts/**/*.js');<% } 
+  <% if (config.script === 'JavaScript') { %>src.push('./src/scripts/**/*.js');<% } 
   else if (config.script === 'CoffeeScript') { %>src.push('./.tmp/scripts/**/*.coffee');<% } %>
-  <% if (config.css === 'CSS') { %>src.push('./styles/**/*.css');<% }
+  <% if (config.css === 'CSS') { %>src.push('./src/styles/**/*.css');<% }
   else if (config.css === 'Stylus') { %> src.push('./.tmp/styles/**/*.stylus'); <% } %>
   gulp.src(src, { read: false })
   .pipe(p.inject(indexFile, {
-    starttag: '//---inject:{{ext}}---',
-    endtag: '//---inject---',
+    <% if (config.markup === "HTML") { %>starttag: '<!--inject:{{ext}}-->',
+    endtag: '<!--inject-->',<% } else if (config.markup === "Jade") { %>starttag'//---inject:{{ext}}---',
+    endtag: '//---inject---',<% } %>
     transform: function (filepath, file, index, length) {
+      if (!filepath) return;
       filepath = filepath.replace(/^.+?\//, '')
       ext = filepath.split('.').pop()
       switch (ext) {
@@ -107,7 +124,10 @@ gulp.task('inject-scripts', deps, function () {
       }
     }
   }))
-  .pipe(gulp.dest('./'));
+  .pipe(gulp.dest('./src/'));
 });
 
+var deps = [];
+
 gulp.task('serve', ['inject-scripts', 'watch'], function () {});
+

@@ -7,7 +7,6 @@ var yosay = require('yosay');
 var chalk = require('chalk');
 var mkdirp = require('mkdirp');
 var fs = require('fs');
-// var dependencies = require('/templates/default/')
 
 var generator = yeoman.generators.Base.extend({
   promptUser: function() {
@@ -67,26 +66,29 @@ var generator = yeoman.generators.Base.extend({
     this.config.save();
   },
   scaffoldFolders: function () {
-    mkdirp("./scripts");
-    mkdirp("./scripts/modules");
-    mkdirp("./styles");
-    mkdirp("./resources");
+    mkdirp("./src/scripts");
+    mkdirp("./src/styles");
+    mkdirp("./src/resources");
+    if (this.config.markup !== 'HTML' || this.config.css !== 'CSS' || this.config.script !== 'JavaScript') {
+      mkdirp('./.tmp');
+    }
   },
   copyMainFiles: function() {
     this.config = this.config.getAll();
-    this.copy('./default/package.json', './package.json');
+    this.copy('./default/package.json', 'package.json');
+    this.copy('./default/bower.json', 'bower.json');
     if (this.config.markup === 'HTML') {
-      this.copy('./default/index.html', './index.html');
+      this.copy('./default/src/index.html', 'src/index.html');
     } else if (this.config.markup === 'Jade') {
-      this.copy('./default/index.jade', './index.jade');
+      this.copy('./default/src/index.jade', 'src/index.jade');
     }
-    this.copy('./default/gulpfile.js', './gulpfile.js');
+    this.copy('./default/gulpfile.js', 'gulpfile.js');
   },
   runNpm: function() {
     if (this.options['skip-install'])
       return;
     var done = this.async();
-    console.log("\nRunning NPM Install. Bower is next.\n");
+    console.log('\nRunning NPM Install. Bower is next.\n');
 
     this.npmInstall('', null, function() {
       done();
@@ -96,9 +98,9 @@ var generator = yeoman.generators.Base.extend({
     if (this.options['skip-install'])
       return; 
     var done = this.async();
-    console.log("\nRunning Bower:\n");
+    console.log('\nRunning Bower:\n');
     this.bowerInstall("", function(){
-      console.log("\nAll set! Type: gulp serve\n");
+      console.log('\nAll set! Type: gulp serve\n');
       done();
     });
   }
