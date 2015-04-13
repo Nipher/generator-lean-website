@@ -5,6 +5,9 @@ var path = require('path');
 var yeoman = require('yeoman-generator');
 var yosay = require('yosay');
 var chalk = require('chalk');
+var mkdirp = require('mkdirp');
+var fs = require('fs');
+// var dependencies = require('/templates/default/')
 
 var generator = yeoman.generators.Base.extend({
   promptUser: function() {
@@ -21,7 +24,7 @@ var generator = yeoman.generators.Base.extend({
       name: 'script',
       message: 'What would you like to write scripts with?',
       type: 'list',
-      choices: ['CoffeeScript', 'JavaScript']
+      choices: ['JavaScript', 'CoffeeScript']
     },{
       name: 'markup',
       message: 'What would you like to write markup with?',
@@ -31,12 +34,12 @@ var generator = yeoman.generators.Base.extend({
       name: 'css',
       message: 'What would you like to write stylesheets with?',
       type: 'list',
-      choices: ['CSS', 'Stylus', 'Sass', 'Less']
+      choices: ['CSS', 'Stylus']
     },{
       name: 'cssLibrary',
       message: 'Choose CSS library to add',
       type: 'list',
-      choices: ['MetroUI', 'Bootstrap', 'None']
+      choices: ['Bootstrap', 'None']
     },{
       name: 'fontawesome',
       message: 'Would you like to use FontAwesome?',
@@ -56,37 +59,39 @@ var generator = yeoman.generators.Base.extend({
         cssLibrary: props.cssLibrary,
         fontawesome: props.fontawesome
       });
-      done
+      done();
     }.bind(this));
   },
 
   saveConfig: function() {
     this.config.save();
   },
-
   scaffoldFolders: function () {
-    this.mkdir("./scripts");
-    this.mkdir("./frontend/modules");
-    this.mkdir("./frontend/directives");
-    this.mkdir("./frontend/services");
-    this.mkdir("./frontend/lib");
-    this.mkdir("./frontend/resources");
-    this.mkdir("./frontend/styles");
-    this.mkdir("./backend/config");
-    this.mkdir("./backend/config/env");
-    this.mkdir("./backend/modules");
+    mkdirp("./scripts");
+    mkdirp("./scripts/modules");
+    mkdirp("./styles");
+    mkdirp("./resources");
   },
-  
-  runNpm: function(){
+  copyMainFiles: function() {
+    this.config = this.config.getAll();
+    this.copy('./default/package.json', './package.json');
+    if (this.config.markup === 'HTML') {
+      this.copy('./default/index.html', './index.html');
+    } else if (this.config.markup === 'Jade') {
+      this.copy('./default/index.jade', './index.jade');
+    }
+    this.copy('./default/gulpfile.js', './gulpfile.js');
+  },
+  runNpm: function() {
     if (this.options['skip-install'])
       return;
     var done = this.async();
     console.log("\nRunning NPM Install. Bower is next.\n");
-    this.npmInstall("", function(){
+
+    this.npmInstall('', null, function() {
       done();
     });
   },
-
   runBower: function() {
     if (this.options['skip-install'])
       return; 
