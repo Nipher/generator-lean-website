@@ -66,6 +66,7 @@ var generator = yeoman.generators.Base.extend({
     this.config.save();
   },
   scaffoldFolders: function () {
+    this.config = this.config.getAll();
     mkdirp("./src/scripts");
     mkdirp("./src/styles");
     mkdirp("./src/resources");
@@ -74,9 +75,9 @@ var generator = yeoman.generators.Base.extend({
     }
   },
   copyMainFiles: function() {
-    this.config = this.config.getAll();
     this.copy('./default/package.json', 'package.json');
     this.copy('./default/bower.json', 'bower.json');
+    this.copy('./default/.bowerrc', '.bowerrc');
     if (this.config.markup === 'HTML') {
       this.copy('./default/src/index.html', 'src/index.html');
     } else if (this.config.markup === 'Jade') {
