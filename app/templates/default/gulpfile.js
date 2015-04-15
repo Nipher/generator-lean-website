@@ -3,7 +3,7 @@
 var gulp = require('gulp');
 var p = require('gulp-load-plugins')(); // loading gulp plugins lazily
 var bowerFiles = require('main-bower-files');
-<% if (config.css === 'Stylus') { %>var nib = require('nib');<% } %>
+<% if (config.style === 'Stylus') { %>var nib = require('nib');<% } %>
 var express = require('express');
 var app = express();
 var connectLivereload = require('connect-livereload');
@@ -47,8 +47,8 @@ gulp.task('watch', ['livereload-start'], function () {
   <% } else if (config.script === 'CoffeeScript') { %>toWatch.push('./.tmp/scripts/**/*.js'); 
   gulp.watch(['./src/scripts/**/*.coffee'], ['coffee']);<% } %>
 
-  <% if (config.css === 'CSS') { %>toWatch.push('./src/styles/**/*.css');
-  <% } else if (config.css === 'Stylus') { %>toWatch.push('./.tmp/styles/**/*.css');
+  <% if (config.style === 'CSS') { %>toWatch.push('./src/styles/**/*.css');
+  <% } else if (config.style === 'Stylus') { %>toWatch.push('./.tmp/styles/**/*.css');
   gulp.watch(['./src/styles/**/*.styl'], ['stylus']);<% } %>
   
   <% if (config.markup === 'HTML') { %>toWatch.push('./src/index.html');
@@ -60,7 +60,7 @@ gulp.task('watch', ['livereload-start'], function () {
     p.livereload.changed(file.path);
   });
 });
-<% if (config.css === 'Stylus') { %>
+<% if (config.style === 'Stylus') { %>
 gulp.task('stylus', function () {
   gulp
   .src(['./src/styles/**/*.styl'])
@@ -100,7 +100,7 @@ gulp.task('inject-bower', function () {
 });
 
 var deps = ['inject-bower'];
-<% if (config.css === 'Stylus') { %>deps.push('stylus');<% } %>
+<% if (config.style === 'Stylus') { %>deps.push('stylus');<% } %>
 <% if (config.script === 'CoffeeScript') { %>deps.push('coffee');<% } %>
 gulp.task('inject-scripts', deps, function () {
   var src = [];
@@ -108,8 +108,8 @@ gulp.task('inject-scripts', deps, function () {
   <% if (config.script === 'JavaScript') { %>src.push('./src/scripts/**/*.js');
   <% } else if (config.script === 'CoffeeScript') { %>src.push('./.tmp/scripts/**/*.coffee');<% } %>
   
-  <% if (config.css === 'CSS') { %>src.push('./src/styles/**/*.css');
-  <% } else if (config.css === 'Stylus') { %> src.push('./.tmp/styles/**/*.stylus'); <% } %>
+  <% if (config.style === 'CSS') { %>src.push('./src/styles/**/*.css');
+  <% } else if (config.style === 'Stylus') { %> src.push('./.tmp/styles/**/*.stylus'); <% } %>
 
   gulp.src(src, { read: false })
   .pipe(p.inject(indexFile, {

@@ -30,7 +30,7 @@ var generator = yeoman.generators.Base.extend({
       type: 'list',
       choices: ['HTML', 'Jade']
     },{
-      name: 'css',
+      name: 'style',
       message: 'What would you like to write stylesheets with?',
       type: 'list',
       choices: ['CSS', 'Stylus']
@@ -70,7 +70,7 @@ var generator = yeoman.generators.Base.extend({
     mkdirp("./src/scripts");
     mkdirp("./src/styles");
     mkdirp("./src/resources");
-    if (this.config.markup !== 'HTML' || this.config.css !== 'CSS' || this.config.script !== 'JavaScript') {
+    if (this.config.markup !== 'HTML' || this.config.style !== 'CSS' || this.config.script !== 'JavaScript') {
       mkdirp('./.tmp');
     }
   },
