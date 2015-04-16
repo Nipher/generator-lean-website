@@ -85,24 +85,15 @@ var generator = yeoman.generators.Base.extend({
     }
     this.copy('./default/gulpfile.js', 'gulpfile.js');
   },
-  runNpm: function() {
-    if (this.options['skip-install'])
-      return;
-    var done = this.async();
-    console.log('\nRunning NPM Install. Bower is next.\n');
-
-    this.npmInstall('', null, function() {
-      done();
-    });
-  },
-  runBower: function() {
-    if (this.options['skip-install'])
-      return; 
-    var done = this.async();
-    console.log('\nRunning Bower:\n');
-    this.bowerInstall("", function(){
-      console.log('\nAll set! Type: gulp serve\n');
-      done();
+  runNpmAndBower: function() {
+    console.log('Running npm install');
+    this.installDependencies({
+      bower: true,
+      npm: true,
+      skipInstall: false,
+      callback: function () {
+        console.log('\nEverything is ready, run gulp serve!');
+      }
     });
   }
 });

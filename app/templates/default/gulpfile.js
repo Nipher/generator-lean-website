@@ -100,6 +100,7 @@ gulp.task('inject-bower', function () {
 });
 
 var deps = ['inject-bower'];
+<% if (config.markup === 'Jade') { %>deps.push('jade');<% } %>
 <% if (config.style === 'Stylus') { %>deps.push('stylus');<% } %>
 <% if (config.script === 'CoffeeScript') { %>deps.push('coffee');<% } %>
 gulp.task('inject-scripts', deps, function () {
