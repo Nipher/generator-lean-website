@@ -1,0 +1,10 @@
+body { margin: 0; }
+
+.welcome {
+  color: #fff;
+  background-color: #00BCD4;
+  padding: 100px;
+  text-align: center;
+  font-size: 20px;
+  margin: 0;
+}

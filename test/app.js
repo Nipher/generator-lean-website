@@ -24,7 +24,10 @@ describe( 'lean-website websiteName', function () {
         'bower.json',
         'package.json',
         'gulpfile.js',
-        'src/index.html'
+        'src/index.html',
+        'src/resources',
+        'src/scripts/main.js',
+        'src/styles/main.css'
       ]);
     } );
   } );
@@ -48,7 +51,12 @@ describe( 'lean-website websiteName', function () {
         'package.json',
         'gulpfile.js',
         'src/index.jade',
-        '.tmp'
+        'src/scripts/main.coffee',
+        'src/styles/main.stylus',
+        'src/resources',
+        '.tmp/scripts',
+        '.tmp/styles',
+        '.tmp/resources'
       ]);
     } );
   } );
