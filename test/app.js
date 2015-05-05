@@ -10,7 +10,7 @@ describe( 'lean-website websiteName', function () {
     before( function ( done ) {
       helpers.run( path.join( __dirname, '../app' ) )
         .withOptions({ skipInstall: true })
-        .withPrompts({ 
+        .withPrompts({
           style: 'CSS',
           markup: 'HTML',
           script: 'JavaScript'
@@ -33,10 +33,10 @@ describe( 'lean-website websiteName', function () {
   } );
 
   describe( 'with other options', function () {
-    before( function ( done ) { 
+    before( function ( done ) {
       helpers.run( path.join( __dirname, '../app' ) )
         .withOptions({ skipInstall: true })
-        .withPrompts({ 
+        .withPrompts({
           style: 'Stylus',
           markup: 'Jade',
           script: 'CoffeeScript'
@@ -52,7 +52,7 @@ describe( 'lean-website websiteName', function () {
         'gulpfile.js',
         'src/index.jade',
         'src/scripts/main.coffee',
-        'src/styles/main.stylus',
+        'src/styles/main.styl',
         'src/resources',
         '.tmp/scripts',
         '.tmp/styles',

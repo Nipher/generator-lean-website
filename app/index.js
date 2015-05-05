@@ -70,16 +70,10 @@ var generator = yeoman.generators.Base.extend({
     mkdirp( './src/scripts' );
     mkdirp( './src/styles' );
     mkdirp( './src/resources' );
-    if ( this.config.markup !== 'HTML' || this.config.style !== 'CSS' || this.config.script !== 'JavaScript' ) {
-      mkdirp( './.tmp' );
-      mkdirp( './.tmp/resources' );
-    }
-    if ( this.config.style !== 'CSS' ) {
-      mkdirp( './.tmp/styles' );
-    }
-    if ( this.config.script !== 'JavaScript' ) {
-      mkdirp( './.tmp/scripts' );
-    }
+    mkdirp( './.tmp' );
+    mkdirp( './.tmp/resources' );
+    mkdirp( './.tmp/styles' );
+    mkdirp( './.tmp/scripts' );
   },
   copyMainFiles: function () {
     this.copy( './default/package.json', 'package.json' );
