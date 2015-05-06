@@ -67,13 +67,18 @@ var generator = yeoman.generators.Base.extend({
   },
   scaffoldFolders: function () {
     this.config = this.config.getAll();
+    mkdirp( './src' )
     mkdirp( './src/scripts' );
     mkdirp( './src/styles' );
     mkdirp( './src/resources' );
     mkdirp( './.tmp' );
-    mkdirp( './.tmp/resources' );
-    mkdirp( './.tmp/styles' );
     mkdirp( './.tmp/scripts' );
+    mkdirp( './.tmp/styles' );
+    mkdirp( './.tmp/resources' );
+    mkdirp( './dist' );
+    mkdirp( './dist/scripts' );
+    mkdirp( './dist/styles' );
+    mkdirp( './dist/resources' );
   },
   copyMainFiles: function () {
     this.copy( './default/package.json', 'package.json' );

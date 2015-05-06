@@ -35,8 +35,8 @@ gulp.task( 'jade', function () {
 <% if ( config.style === 'CSS' ) { %>
 gulp.task( 'css', function () {
   return gulp
-  .src([ './src/styles/*,css' ])
-  .pipe( gulp.dest( '..tmp/styles' ));
+  .src([ './src/styles/**/*.css' ])
+  .pipe( gulp.dest( './.tmp/styles' ));
 } );<% } else if ( config.style === 'Stylus' ) { %>
 gulp.task( 'stylus', function () {
   return gulp
@@ -59,19 +59,14 @@ gulp.task( 'bower', function () {
   .pipe( gulp.dest( './dist' ) );
 } );
 
-var deps = [];<% if ( config.markup === 'Jade' ) { %>
-deps.push( 'jade' );<% } %><% if ( config.script === 'CoffeeScript' ) { %>
-deps.push( 'coffee' );<% } %><% if ( config.style === 'Stylus' ) { %>
-deps.push( 'stylus' );<% } %>
-
-gulp.task( 'express', deps, function () {
+gulp.task( 'express', [ 'init:update-index' ], function () {
   var path = './.tmp';
   app.use( connectLivereload() );
   app.use( express.static( path ) );
   app.listen( 9000 );
   console.log( 'Express server listening on 0.0.0.0:9000' );
   p.livereload.listen();
-});
+} );
 
 gulp.task( 'watch', [ 'express' ], function () {
   var toWatch = [];
@@ -94,7 +89,7 @@ gulp.task( 'watch', [ 'express' ], function () {
   .on( 'change', function ( file ) {
     p.livereload.changed( file.path );
   } );
-});
+} );
 
 var deps = [];
 <% if ( config.markup === 'HTML' ) { %>deps.push( 'html' );
@@ -102,7 +97,8 @@ var deps = [];
 var indexInfo = { filepath: './.tmp/index.html', folderpath: './.tmp/' };
 
 gulp.task( 'inject-bower', deps, function () {
-  var sources = gulp.src( bowerFiles(), { read: false } ).pipe( p.filter([ '*.js', '*.css' ]) );
+  var sources = gulp.src( bowerFiles(), { read: false } )
+  .pipe( p.filter([ '*.js', '*.css' ]) );
 
   var injectOptions = {
     starttag: '<!-- bower:{{ext}} -->',
@@ -123,7 +119,7 @@ gulp.task( 'inject-bower', deps, function () {
   .pipe( gulp.dest( indexInfo.folderpath ) );
 } );
 
-gulp.task( 'update-index', [ 'inject-bower' ], function () {
+var updateIndex = function () {
   var sources = gulp.src( [ './.tmp/scripts/**/*.js', './.tmp/styles/**/*.css' ], { read: false });
 
   var injectOptions = {
@@ -143,6 +139,16 @@ gulp.task( 'update-index', [ 'inject-bower' ], function () {
   return gulp.src( indexInfo.filepath )
   .pipe( p.inject( sources, injectOptions ) )
   .pipe( gulp.dest( indexInfo.folderpath ) );
-});
+};
+
+var initDeps = [];<% if ( config.script === 'JavaScript' ) { %>
+initDeps.push( 'js' );<% } else if ( config.script === 'CoffeeScript' ) { %>
+initDeps.push( 'coffee' );<% } %><% if ( config.style === 'CSS' ) { %>
+initDeps.push( 'css' );<% } else if ( config.style === 'Stylus' ) { %>
+initDeps.push( 'stylus' );<% } %>
+initDeps.push( 'inject-bower' );
+
+gulp.task( 'init:update-index', initDeps, updateIndex );
+gulp.task( 'update-index', [ 'inject-bower' ], updateIndex );
 
 gulp.task( 'serve', [ 'watch' ], function () {} );
