@@ -52,11 +52,63 @@ gulp.task( 'resources', function () {
   .pipe( gulp.dest( './.tmp' ) );
 } );
 
-gulp.task( 'bower', function () {
+gulp.task( 'build:bower:js', function () {
   return gulp
-  .src( bowerFiles(), { read: false } )
-  .pipe( p.filter([ '*.min.js', '*.min.css' ]) )
-  .pipe( gulp.dest( './dist' ) );
+  .src( bowerFiles() )
+  .pipe( p.filter([ '**/*.js', '!*.min.js' ]) )
+  .pipe( p.rename( function ( path ) {
+    path.extname = '.min.js';
+  } ) )
+  .pipe( p.uglify() )
+  .pipe( gulp.dest( './dist/lib' ) );
+} );
+
+gulp.task( 'build:bower:css', function () {
+  return gulp
+  .src( bowerFiles() )
+  .pipe( p.filter([ '**/*.css', '!*.min.css' ]) )
+  .pipe( p.rename( function ( path ) { 
+    path.extname = '.min.css';
+  } ) )
+  .pipe( p.minifyCss() )
+  .pipe( gulp.dest( './dist/lib' ) );
+} );
+
+gulp.task( 'build:bower', [ 'build:bower:js', 'build:bower:css' ], function () {} );
+
+gulp.task( 'build:js', function () {
+  return gulp
+  .src([ './.tmp/scripts/**/*.js' ])
+  .pipe( p.uglify() )
+  .pipe( gulp.dest( './dist/scripts' ) );
+} );
+
+gulp.task( 'build:css', function () {
+  return gulp
+  .src([ './.tmp/styles/**/*.css' ])
+  .pipe( p.minifyCss() )
+  .pipe( gulp.dest( './dist/styles' ) );
+} );
+
+gulp.task( 'build:resources', function () { 
+  return gulp
+  .src([ './.tmp/resources/**/*' ])
+  .pipe( gulp.dest( './dist/resources' ) );
+} );
+
+gulp.task( 'build', [ 'build:js', 'build:css', 'build:resources', 'build:bower' ], updateIndex(
+  gulp.src( './dist/lib/**/*.js', './dist/lib/**/*.css' ),
+  injectOptions,
+  { filepath: './.tmp/index.html', folderpath: './dist'  },
+  true
+) );
+
+gulp.task( 'serve:dist', [ 'build' ], function () {
+  app.use( connectLivereload() );
+  app.use( express.static( './dist' ) );                          
+  app.listen( 9001 );
+  console.log( 'Express server listening on 0.0.0.0:9001' );
+  p.livereload.listen();
 } );
 
 gulp.task( 'express', [ 'init:update-index' ], function () {
@@ -96,49 +148,41 @@ var deps = [];
 <% } else if ( config.markup === 'Jade' ) { %>deps.push( 'jade' );<% } %>
 var indexInfo = { filepath: './.tmp/index.html', folderpath: './.tmp/' };
 
-gulp.task( 'inject-bower', deps, function () {
-  var sources = gulp.src( bowerFiles(), { read: false } )
-  .pipe( p.filter([ '*.js', '*.css' ]) );
-
-  var injectOptions = {
-    starttag: '<!-- bower:{{ext}} -->',
-    endtag: '<!-- endinject -->',
-    transform: function ( filepath ) {
-      var ext = filepath.split( '.' ).pop();
-      switch ( ext ) {
-        case 'js':
-          return '<script src="' + filepath.replace( '/.tmp/', '' ) + '"></script>';
-        case 'css':
-          return '<link href="' + filepath.replace( '/.tmp/', '' ) + '" rel="stylesheet">';
-      }
+var injectOptions = {
+  starttag: '<!-- bower:{{ext}} -->',
+  endtag: '<!-- endinject -->',
+  transform: function ( filepath ) {
+    var ext = filepath.split( '.' ).pop();
+    switch ( ext ) {
+      case 'js':
+        return '<script src="' + filepath.replace( '/.tmp/', '' ) + '"></script>';
+      case 'css':
+        return '<link href="' + filepath.replace( '/.tmp/', '' ) + '" rel="stylesheet">';
     }
-  };
+  }
+};
 
-  return gulp.src( indexInfo.filepath )
-  .pipe( p.inject( sources, injectOptions ) )
-  .pipe( gulp.dest( indexInfo.folderpath ) );
-} );
+gulp.task( 'inject-bower', deps, updateIndex(
+  gulp.src( bowerFiles(), { read: false } ).pipe( p.filter([ '*.js', '*.css' ]) ),
+  injectOptions,
+  indexInfo
+) );
 
-var updateIndex = function () {
-  var sources = gulp.src( [ './.tmp/scripts/**/*.js', './.tmp/styles/**/*.css' ], { read: false });
-
-  var injectOptions = {
-    starttag: '<!-- inject:{{ext}} -->',
-    endtag: '<!-- endinject -->',
-    transform: function ( filepath ) {
-      var ext = filepath.split( '.' ).pop();
-      switch ( ext ) {
-        case 'js':
-          return '<script src="' + filepath.replace( '/.tmp/', '' ) + '"></script>';
-        case 'css':
-          return '<link href="' + filepath.replace( '/.tmp/', '' ) + '" rel="stylesheet">';
-      }
-    }
-  };
-
-  return gulp.src( indexInfo.filepath )
-  .pipe( p.inject( sources, injectOptions ) )
-  .pipe( gulp.dest( indexInfo.folderpath ) );
+var updateIndex = function ( src, injectOptions, indexInfo, minify ) {
+  if ( minify ) {
+    return function () {
+      return gulp.src( indexInfo.filepath )
+      .pipe( p.inject( src, injectOptions ) )
+      .pipe( p.minifyHtml() )
+      .pipe( gulp.dest( indexInfo.folderPath ) );
+    };
+  } else {
+    return function () {
+      return gulp.src( indexInfo.filepath )
+      .pipe( p.inject( src, injectOptions ) )
+      .pipe( gulp.dest( indexInfo.folderpath ) );
+    };
+  }
 };
 
 var initDeps = [];<% if ( config.script === 'JavaScript' ) { %>
@@ -148,7 +192,29 @@ initDeps.push( 'css' );<% } else if ( config.style === 'Stylus' ) { %>
 initDeps.push( 'stylus' );<% } %>
 initDeps.push( 'inject-bower' );
 
-gulp.task( 'init:update-index', initDeps, updateIndex );
-gulp.task( 'update-index', [ 'inject-bower' ], updateIndex );
+injectOptions = {
+  starttag: '<!-- inject:{{ext}} -->',
+  endtag: '<!-- endinject -->',
+  transform: function ( filepath ) {
+    var ext = filepath.split( '.' ).pop();
+    switch ( ext ) {
+      case 'js':
+        return '<script src="' + filepath.replace( '/.tmp/', '' ) + '"></script>';
+      case 'css':
+        return '<link href="' + filepath.replace( '/.tmp/', '' ) + '" rel="stylesheet">';
+    }
+  }
+};
+
+gulp.task( 'init:update-index', initDeps, updateIndex( 
+  gulp.src( [ './.tmp/scripts/**/*.js', './.tmp/styles/**/*.css' ], { read: false } ),
+  injectOptions,
+  indexInfo
+) );
+gulp.task( 'update-index', [ 'inject-bower' ], updateIndex(
+  gulp.src( [ './.tmp/scripts/**/*.js', './.tmp/styles/**/*.css' ], { read: false } ),
+  injectOptions,
+  indexInfo
+) );
 
 gulp.task( 'serve', [ 'watch' ], function () {} );

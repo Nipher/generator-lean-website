@@ -67,7 +67,7 @@ var generator = yeoman.generators.Base.extend({
   },
   scaffoldFolders: function () {
     this.config = this.config.getAll();
-    mkdirp( './src' )
+    mkdirp( './src' );
     mkdirp( './src/scripts' );
     mkdirp( './src/styles' );
     mkdirp( './src/resources' );
@@ -79,6 +79,7 @@ var generator = yeoman.generators.Base.extend({
     mkdirp( './dist/scripts' );
     mkdirp( './dist/styles' );
     mkdirp( './dist/resources' );
+    mkdirp( './dist/lib' );
   },
   copyMainFiles: function () {
     this.copy( './default/package.json', 'package.json' );
