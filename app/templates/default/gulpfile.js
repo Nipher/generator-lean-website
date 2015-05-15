@@ -87,7 +87,7 @@ gulp.task( 'build:bower:js', function () {
     path.extname = '.min.js';
   } ) )
   .pipe( p.uglify() )
-  .pipe( gulp.dest( './dist/lib' ) );
+  .pipe( gulp.dest( './dist/lib/js' ) );
 } );
 
 gulp.task( 'build:bower:css', function () {
@@ -98,14 +98,28 @@ gulp.task( 'build:bower:css', function () {
     path.extname = '.min.css';
   } ) )
   .pipe( p.minifyCss() )
-  .pipe( gulp.dest( './dist/lib' ) );
+  .pipe( gulp.dest( './dist/lib/css' ) );
 } );
 
-gulp.task( 'build:bower:index', [ 'build:bower:js', 'build:bower:css' ], function () {
+gulp.task( 'build:bower:fonts', function () {
+  var src = bowerFiles().filter( function ( item ) {
+    if ( item.search( /\/fonts\// ) > 0 ) {
+      return true;
+    } else {
+      return false;
+    } 
+  } );
+
+  return gulp
+  .src( src )
+  .pipe( gulp.dest( 'dist/lib/fonts' ) );
+} );
+
+gulp.task( 'build:bower:index', [ 'build:bower:js', 'build:bower:css', 'build:bower:fonts' ], function () {
   return gulp
   .src( indexFile )<% if ( config.markup === 'Jade' ) { %>
   .pipe( p.jade({ pretty: true }).on( 'error', p.util.log ) )<% } %>
-  .pipe( p.inject( gulp.src([ './dist/lib/*' ]), bowerInjectOptions ) )
+  .pipe( p.inject( gulp.src([ './dist/lib/**/*.js', './dist/**/css/*.css' ]), bowerInjectOptions ) )
   .pipe( gulp.dest( './dist' ) );
 } );
 
@@ -113,6 +127,7 @@ gulp.task( 'build:index', [ 'build:bower:index', 'build:js', 'build:css' ], func
   return gulp
   .src( './dist/index.html' )
   .pipe( p.inject( gulp.src([ './dist/scripts/*.js', './dist/styles/*.css' ]), srcInjectOptions ) )
+  .pipe( p.minifyHtml() )
   .pipe( gulp.dest( './dist' ) );
 } );
 
