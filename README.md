@@ -27,8 +27,8 @@ Finally, initiate the generator:
 $ yo lean-website
 ```
 
-This was made for personal use, but I hope this generator can be usefull for someone.
-If you want to add something or fix something, please fell confortable to make a PR or create an issue!
+This was made for personal use, but I hope this generator can be useful for someone.
+If you want to add something or fix something, please fell comfortable to make a PR or create an issue!
 
 
 ## License
